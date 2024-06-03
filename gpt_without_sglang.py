@@ -18,34 +18,39 @@ def encode_image(image_path):
     return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-model="gpt-4-turbo"
-image_path = "dino1.png"
-base64_image = encode_image(image_path)
-logit_bias= tokenize_words_with_count(["jump", "duck"], model)
-
-
-
-response = client.chat.completions.create(
-  model=model,
-  messages=[
-    {
-      "role": "user",
-      "content": [
-        {"type": "text", "text": "What should be the next action in the game"},
-        {
-          "type": "image_url",
-          "image_url": {
-            "url": f"data:image/jpeg;base64,{base64_image}",
+def next_action(image):
+  response = client.chat.completions.create(
+    model=model,
+    messages=[
+      {
+        "role": "user",
+        "content": [
+          {"type": "text", "text": "What should be the next keypress in the game"},
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": f"data:image/jpeg;base64,{base64_image}",
+            },
           },
-        },
-      ],
-    }
-  ],
-  logit_bias=logit_bias,
-  max_tokens=1,
-)
+        ],
+      }
+    ],
+    logit_bias=logit_bias,
+    max_tokens=1,
+  )
+  print(response.choices[0].message.content)
+  return response
 
 
 
+model="gpt-4-turbo"
+actions=["up","down","right","left"]
+logit_bias= tokenize_words_with_count(actions, model)
 
-print(response.choices[0])
+
+image_paths = ["pacman1.png","pacman2.png","pacman2.png","pacman4.png"]
+
+for image_path in image_paths:
+  base64_image = encode_image(image_path)
+  next_action(base64_image)
+
